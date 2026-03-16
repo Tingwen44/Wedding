@@ -159,6 +159,50 @@
     </div>
 
     <script>
+        // 配置后端 URL
+const BACKEND_URL = 'http://localhost:3001'; // 本地测试
+// const BACKEND_URL = 'https://your-domain.com'; // 生产环境
+
+// 表单提交处理
+document.getElementById('rsvpForm' ).addEventListener('submit', async (e) => {
+  e.preventDefault(); // 阻止默认提交
+
+  // 收集表单数据
+  const formData = new FormData(e.target);
+  const data = {
+    wedding_location: formData.get('wedding_location'),
+    guest_name: formData.get('guest_name'),
+    guest_count: parseInt(formData.get('guest_count')),
+    accompanying_guests: formData.get('accompanying_guests'),
+    accommodation_dates: Array.from(formData.getAll('accommodation_dates')).join(', '),
+    room_type: formData.get('room_type'),
+    after_party: formData.get('after_party') === 'yes'
+  };
+
+  try {
+    // 发送数据到后端
+    const response = await fetch(`${BACKEND_URL}/api/rsvp/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    // 显示结果
+    if (result.success) {
+      alert(result.message); // 显示成功消息
+      e.target.reset(); // 清空表单
+    } else {
+      alert(result.message || '提交失败');
+    }
+  } catch (error) {
+    alert('网络错误，请检查后端服务器');
+    console.error('错误:', error);
+  }
+});
         document.getElementById('inviteForm').addEventListener('submit', function(e) {
             e.preventDefault();
             alert('感谢您的回复！我们已收到您的邀请函确认。');
