@@ -129,9 +129,49 @@
             color: #8B0000;
             margin-top: 10px;
         }
+        .music-control-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .music-control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        .music-control-btn:active {
+            transform: scale(0.95);
+        }
+        .music-control-btn.playing {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        audio {
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <!-- 音乐播放器 -->
+    <audio id="bgMusic" loop>
+        <source src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663407980077/lRiMoZkLiPCimPiu.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- 音乐控制按钮 -->
+    <button class="music-control-btn" id="musicBtn" title="点击开启/关闭音乐">🔊</button>
+    
     <div class="main-wrapper">
         <img src="https://pic1.imgdb.cn/item/69b6830886fff564438fa2fc.png" class="header-img" alt="Wedding Invitation">
 
@@ -284,6 +324,48 @@
                 // 重新启用提交按钮
                 submitBtn.disabled = false;
             }
+        });
+        
+        // ============================================
+        // 音乐控制逻辑
+        // ============================================
+        const bgMusic = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        let isPlaying = false;
+        
+        // 初始化音乐控制按钮
+        musicBtn.addEventListener('click', function() {
+            if (isPlaying) {
+                bgMusic.pause();
+                musicBtn.classList.remove('playing');
+                musicBtn.textContent = '🔊';
+                isPlaying = false;
+            } else {
+                bgMusic.play().catch(err => {
+                    console.log('音乐播放失败:', err);
+                });
+                musicBtn.classList.add('playing');
+                musicBtn.textContent = '🔇';
+                isPlaying = true;
+            }
+        });
+        
+        // 监听音乐播放结束事件（循环播放）
+        bgMusic.addEventListener('ended', function() {
+            bgMusic.currentTime = 0;
+            bgMusic.play();
+        });
+        
+        // 页面加载完成后自动播放音乐
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                bgMusic.play().catch(err => {
+                    console.log('自动播放音乐失败（可能是浏览器限制）:', err);
+                });
+                musicBtn.classList.add('playing');
+                musicBtn.textContent = '🔇';
+                isPlaying = true;
+            }, 500);
         });
         
         // ============================================
