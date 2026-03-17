@@ -274,7 +274,7 @@
                     timestamp: new Date().toISOString()
                 };
                 
-                const response = await fetch(`${BACKEND_URL}/api/rsvp`, {
+                const response = await fetch(`${BACKEND_URL}/api/rsvp/submit`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
