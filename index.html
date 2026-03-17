@@ -164,7 +164,7 @@
 </head>
 <body>
     <!-- 音乐播放器 -->
-    <audio id="bgMusic" loop>
+    <audio id="bgMusic" loop autoplay>
         <source src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663407980077/lRiMoZkLiPCimPiu.mp3" type="audio/mpeg">
     </audio>
     
@@ -355,15 +355,26 @@
             bgMusic.play();
         });
         
-        // 页面加载完成后自动播放音乐
+        // 页面加载完成后更新按钮状态
         window.addEventListener('load', function() {
             setTimeout(() => {
-                bgMusic.play().catch(err => {
-                    console.log('自动播放音乐失败（可能是浏览器限制）:', err);
-                });
-                musicBtn.classList.add('playing');
-                isPlaying = true;
-            }, 500);
+                // 检查音乐是否正在播放
+                if (!bgMusic.paused) {
+                    musicBtn.classList.add('playing');
+                    isPlaying = true;
+                }
+            }, 100);
+        });
+        
+        // 监听音乐播放/暂停事件，实时更新按钮状态
+        bgMusic.addEventListener('play', function() {
+            musicBtn.classList.add('playing');
+            isPlaying = true;
+        });
+        
+        bgMusic.addEventListener('pause', function() {
+            musicBtn.classList.remove('playing');
+            isPlaying = false;
         });
         
         // ============================================
