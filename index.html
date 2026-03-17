@@ -164,7 +164,7 @@
 </head>
 <body>
     <!-- 音乐播放器 -->
-    <audio id="bgMusic" loop autoplay>
+    <audio id="bgMusic" loop>
         <source src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663407980077/lRiMoZkLiPCimPiu.mp3" type="audio/mpeg">
     </audio>
     
@@ -240,11 +240,7 @@
         // ============================================
         // 配置后端 URL
         // ============================================
-        // 本地测试时使用：
         const BACKEND_URL = 'https://wedding-backend-production-6728.up.railway.app';
-        
-        // 生产环境部署后，改成您的域名：
-        // const BACKEND_URL = 'https://your-domain.com';
         
         // ============================================
         // 表单提交处理
@@ -252,29 +248,21 @@
         document.getElementById('inviteForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // 获取 DOM 元素
             const submitBtn = document.querySelector('.submit-btn');
             const loadingMessage = document.getElementById('loadingMessage');
             const successMessage = document.getElementById('successMessage');
             const errorMessage = document.getElementById('errorMessage');
             
-            // 隐藏所有消息
             successMessage.style.display = 'none';
             errorMessage.style.display = 'none';
             loadingMessage.style.display = 'block';
             
-            // 禁用提交按钮
             submitBtn.disabled = true;
             
             try {
-                // 收集表单数据
                 const formData = new FormData(this);
-                
-                // 处理多选框数据（住宿日期）
                 const accommodationDates = formData.getAll('accommodation_dates');
                 
-                
-                // 构建要发送的数据
                 const data = {
                     wedding_location: formData.get('wedding_location'),
                     guest_name: formData.get('guest_name'),
@@ -282,13 +270,11 @@
                     accompanying_guests: formData.get('accompanying_guests') || '',
                     accommodation_dates: accommodationDates.join(', '),
                     room_type: formData.get('room_type') || '',
-
+                    special_requirements: formData.get('special_requirements') || '',
+                    timestamp: new Date().toISOString()
                 };
                 
-                console.log('发送的数据:', data); // 调试用
-                
-                // 发送数据到后端
-                const response = await fetch(`${BACKEND_URL}/api/rsvp/submit`, {
+                const response = await fetch(`${BACKEND_URL}/api/rsvp`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -296,53 +282,86 @@
                     body: JSON.stringify(data)
                 });
                 
-                const result = await response.json();
-                
-                console.log('后端响应:', result); // 调试用
-                
-                // 隐藏加载消息
-                loadingMessage.style.display = 'none';
-                
-                // 显示结果
-                if (result.success) {
+                if (response.ok) {
+                    loadingMessage.style.display = 'none';
                     successMessage.style.display = 'block';
-                    // 清空表单
                     this.reset();
-                    // 3 秒后隐藏成功消息
                     setTimeout(() => {
                         successMessage.style.display = 'none';
-                    }, 3000);
+                    }, 5000);
                 } else {
-                    errorMessage.textContent = '✗ ' + (result.message || '提交失败');
-                    errorMessage.style.display = 'block';
+                    throw new Error('Server error');
                 }
             } catch (error) {
-                console.error('错误:', error);
+                console.error('Error:', error);
                 loadingMessage.style.display = 'none';
-                errorMessage.textContent = '✗ 网络错误，请检查后端服务器是否运行。';
                 errorMessage.style.display = 'block';
             } finally {
-                // 重新启用提交按钮
                 submitBtn.disabled = false;
             }
         });
         
         // ============================================
-        // 音乐控制逻辑
+        // 音乐控制逻辑 - 支持移动浏览器
         // ============================================
         const bgMusic = document.getElementById('bgMusic');
         const musicBtn = document.getElementById('musicBtn');
         let isPlaying = false;
+        let autoplayAttempted = false;
         
-        // 初始化音乐控制按钮
-        musicBtn.addEventListener('click', function() {
+        // 尝试自动播放音乐
+        function attemptAutoplay() {
+            if (!autoplayAttempted && bgMusic) {
+                autoplayAttempted = true;
+                console.log('[音乐] 尝试自动播放...');
+                
+                bgMusic.play().then(() => {
+                    console.log('[音乐] 自动播放成功！');
+                    musicBtn.classList.add('playing');
+                    isPlaying = true;
+                }).catch(err => {
+                    console.log('[音乐] 自动播放失败（这是正常的，需要用户交互）:', err.name);
+                });
+            }
+        }
+        
+        // 在用户首次交互时触发自动播放
+        function onFirstInteraction() {
+            console.log('[音乐] 检测到用户交互，尝试播放...');
+            attemptAutoplay();
+            
+            // 移除所有交互监听器（只执行一次）
+            document.removeEventListener('click', onFirstInteraction);
+            document.removeEventListener('touchstart', onFirstInteraction);
+            document.removeEventListener('keydown', onFirstInteraction);
+        }
+        
+        // 监听用户交互事件（只执行一次）
+        document.addEventListener('click', onFirstInteraction, { once: true });
+        document.addEventListener('touchstart', onFirstInteraction, { once: true });
+        document.addEventListener('keydown', onFirstInteraction, { once: true });
+        
+        // 页面加载完成后也尝试自动播放
+        window.addEventListener('load', function() {
+            console.log('[音乐] 页面加载完成，等待 500ms 后尝试播放...');
+            setTimeout(() => {
+                attemptAutoplay();
+            }, 500);
+        });
+        
+        // 音乐控制按钮点击事件
+        musicBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // 防止触发自动播放逻辑
+            
             if (isPlaying) {
+                console.log('[音乐] 用户点击暂停');
                 bgMusic.pause();
                 musicBtn.classList.remove('playing');
                 isPlaying = false;
             } else {
+                console.log('[音乐] 用户点击播放');
                 bgMusic.play().catch(err => {
-                    console.log('音乐播放失败:', err);
+                    console.log('[音乐] 播放失败:', err);
                 });
                 musicBtn.classList.add('playing');
                 isPlaying = true;
@@ -351,47 +370,26 @@
         
         // 监听音乐播放结束事件（循环播放）
         bgMusic.addEventListener('ended', function() {
+            console.log('[音乐] 播放结束，重新开始');
             bgMusic.currentTime = 0;
             bgMusic.play();
         });
         
-        // 页面加载完成后更新按钮状态
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                // 检查音乐是否正在播放
-                if (!bgMusic.paused) {
-                    musicBtn.classList.add('playing');
-                    isPlaying = true;
-                }
-            }, 100);
-        });
-        
         // 监听音乐播放/暂停事件，实时更新按钮状态
         bgMusic.addEventListener('play', function() {
+            console.log('[音乐] 播放事件');
             musicBtn.classList.add('playing');
             isPlaying = true;
         });
         
         bgMusic.addEventListener('pause', function() {
+            console.log('[音乐] 暂停事件');
             musicBtn.classList.remove('playing');
             isPlaying = false;
         });
         
-        // 页面加载完成后自动播放音乐
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                bgMusic.play().catch(err => {
-                    console.log('自动播放音乐失败:', err.message);
-                });
-                musicBtn.classList.add('playing');
-                isPlaying = true;
-            }, 500);
-        });
-        
-        // ============================================
-        // 调试信息
-        // ============================================
-        console.log('表单已加载，后端 URL:', BACKEND_URL);
+        console.log('[初始化] 表单已加载，后端 URL:', BACKEND_URL);
+        console.log('[初始化] 音乐播放系统已初始化');
     </script>
 </body>
 </html>
