@@ -174,14 +174,6 @@
                 </div>
             </div>
 
-            <div class="form-item">
-                <span class="form-label">5. 是否有意向参加晚间聚会 (After Party)</span>
-                <div class="flex gap-3">
-                    <label class="flex-1"><input type="radio" name="after_party" value="true" class="hidden"><div class="option-btn">参加</div></label>
-                    <label class="flex-1"><input type="radio" name="after_party" value="false" class="hidden"><div class="option-btn">不参加</div></label>
-                </div>
-            </div>
-
             <button type="submit" class="submit-btn active:scale-95 transition-transform">提交确认回执</button>
             
             <div class="loading" id="loadingMessage">
@@ -240,9 +232,6 @@
                 // 处理多选框数据（住宿日期）
                 const accommodationDates = formData.getAll('accommodation_dates');
                 
-                // 处理单选框数据（After Party）
-                const afterPartyValue = formData.get('after_party');
-                const afterParty = afterPartyValue === 'true' ? true : (afterPartyValue === 'false' ? false : null);
                 
                 // 构建要发送的数据
                 const data = {
@@ -252,7 +241,7 @@
                     accompanying_guests: formData.get('accompanying_guests') || '',
                     accommodation_dates: accommodationDates.join(', '),
                     room_type: formData.get('room_type') || '',
-                    after_party: afterParty
+
                 };
                 
                 console.log('发送的数据:', data); // 调试用
