@@ -164,7 +164,7 @@
 </head>
 <body>
     <!-- 音乐播放器 -->
-    <audio id="bgMusic" loop autoplay>
+    <audio id="bgMusic" loop autoplay muted>
         <source src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663407980077/lRiMoZkLiPCimPiu.mp3" type="audio/mpeg">
     </audio>
     
@@ -376,6 +376,19 @@
             musicBtn.classList.remove('playing');
             isPlaying = false;
         });
+        
+        // 在用户与页面交互后，取消音乐静音
+        function enableAudio() {
+            if (bgMusic.muted) {
+                bgMusic.muted = false;
+                console.log('音乐已取消静音');
+            }
+            document.removeEventListener('click', enableAudio);
+            document.removeEventListener('touchstart', enableAudio);
+        }
+        
+        document.addEventListener('click', enableAudio);
+        document.addEventListener('touchstart', enableAudio);
         
         // ============================================
         // 调试信息
